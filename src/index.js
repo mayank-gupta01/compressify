@@ -5,6 +5,15 @@ const { connectDB } = require("./db");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+//Import Routes
+const productRouter = require("./routes/product.routes");
+
+//Routes Declaration
+app.use("/api/v1/product", productRouter);
+
 connectDB()
   .then(() => {
     app.on("error", (error) => {
