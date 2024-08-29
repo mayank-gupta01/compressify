@@ -2,6 +2,8 @@ const fs = require("fs");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiResponse = require("../utils/ApiResponse");
 const Product = require("../models/product.model");
+const ApiError = require("../utils/ApiError");
+const redis = require("../utils/client");
 
 //validate the csv file
 //process every image via url and upload it on the cloudinary
@@ -14,19 +16,37 @@ const uploadCSV = asyncHandler(async (req, res) => {
     status: "PROCESSING",
   });
 
-  
+  //fetch the csv file and store it using multer
+  const csvFilePath = req.files.csvfile[0].path;
+  //console.log(csvFilePath);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, "Product Created Successfully", {
-        requestId: createProduct._id,
-      })
-    );
+  //add the fetched file and product->id in redis queue
+  const id = createProduct._id;
+  const value = JSON.stringify({ id, csvFilePath });
+  redis.rpush("task", value);
+
+  return res.status(201).json(
+    new ApiResponse(201, "Product Created Successfully", {
+      requestId: id,
+    })
+  );
 });
 
-const trackStatus = async (req, res) => {
+
+
+const trackStatus = asyncHandler(async (req, res) => {
   //find the requested Id in the db ? return the response : return the error
-};
+  const { id } = req.params;
+  const existedDoc = await Product.findById(id);
+  if (!existedDoc) {
+    throw new ApiError(400, "Product doesn't existed");
+  } else {
+    return res.status(200).json(
+      new ApiResponse(200, "Product Fetched Successfully", {
+        status: existedDoc.status,
+      })
+    );
+  }
+});
 
 module.exports = { uploadCSV, trackStatus };

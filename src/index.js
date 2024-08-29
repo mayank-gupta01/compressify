@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "" });
 const express = require("express");
 const { connectDB } = require("./db");
+const processTask = require("./utils/processTask");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ connectDB()
       throw error;
     });
     app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
+    setInterval(processTask, 1000);
   })
   .catch((error) => {
     console.log(error);

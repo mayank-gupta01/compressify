@@ -4,14 +4,14 @@ const upload = require("../middlewares/multer.middlewares");
 const router = Router();
 
 router.route("/upload").post(
-//   upload.fields([
-//     {
-//       name: "csvfile",
-//       maxCount: 1,
-//     },
-//   ]),
+  upload.fields([
+    {
+      name: "csvfile",
+      maxCount: 1,
+    },
+  ]),
   uploadCSV
 );
-router.route("/status").get(trackStatus);
+router.route("/status/:id").get(trackStatus);
 
 module.exports = router;
