@@ -1,10 +1,9 @@
 const mongoose = require("mongoose");
 
-const product = mongoose.Schema(
+const productSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
       lowercase: true,
       trim: true,
     },
@@ -16,8 +15,8 @@ const product = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["IN PROCESS", "SUCCESS"],
-      default: "IN PROCESS",
+      enum: ["PROCESSING", "SUCCESS"],
+      default: "PROCESSING",
     },
   },
   {
@@ -25,4 +24,5 @@ const product = mongoose.Schema(
   }
 );
 
-module.exports = product;
+const Product = mongoose.model("Product", productSchema);
+module.exports = Product;
