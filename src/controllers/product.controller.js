@@ -6,6 +6,7 @@ const ApiError = require("../utils/ApiError");
 const redis = require("../utils/client");
 const axios = require("axios").default;
 const csv = require("csv-parser");
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 async function validateCSV(filePath) {
   const results = [];
@@ -77,9 +78,6 @@ async function validateCSV(filePath) {
   });
 }
 
-//save the product info in the db
-//call a webhook which create a csv file
-
 const uploadCSV = asyncHandler(async (req, res) => {
   //fetch the csv file and store it using multer
   const csvFilePath = req.files.csvfile[0].path;
@@ -126,4 +124,42 @@ const trackStatus = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { uploadCSV, trackStatus };
+const generateCSV = asyncHandler(async (req, res) => {
+  const { products } = req.body;
+  const filePath = "public/output/output.csv";
+
+  const csvWriter = createCsvWriter({
+    path: filePath,
+    header: [
+      { id: "sNo", title: "S.No" },
+      { id: "productName", title: "Product Name" },
+      { id: "inputImgUrls", title: "Input Img Urls" },
+      { id: "outputImgUrls", title: "Output Img Urls" },
+    ],
+  });
+
+  // console.log(products);
+
+  const records = products.map((product, index) => ({
+    sNo: index + 1,
+    productName: product.productName,
+    inputImgUrls: product.inputImgUrls.join(", "),
+    outputImgUrls: product.processedImgUrls.join(", "),
+  }));
+
+  // console.log(records);
+
+  // Write the data to the CSV file
+  try {
+    await csvWriter.writeRecords(records);
+    console.log("CSV file created successfully!");
+  } catch (error) {
+    console.error("Error creating CSV file:", error);
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "CSV File Generated Successfully"));
+});
+
+module.exports = { uploadCSV, trackStatus, generateCSV };

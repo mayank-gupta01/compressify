@@ -14,7 +14,7 @@ const productSchema = mongoose.Schema(
     inputImgUrls: {
       type: [String],
     },
-    processedImgUrl: {
+    processedImgUrls: {
       type: [String],
     },
   },
