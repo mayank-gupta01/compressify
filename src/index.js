@@ -22,7 +22,7 @@ connectDB()
       throw error;
     });
     app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
-    setInterval(processTask, 1000);
+    // setInterval(processTask, 1000);
   })
   .catch((error) => {
     console.log(error);
