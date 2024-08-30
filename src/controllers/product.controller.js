@@ -12,8 +12,9 @@ const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 //validate the CSV file
 async function validateCSV(filePath) {
   const results = [];
-  const promises = [];
+  const promises = []; //contain the promises
 
+  //need to create a promise because we want asynchronous nature of function.
   return new Promise((resolve, reject) => {
     const stream = fs.createReadStream(filePath).pipe(csv());
 
@@ -23,11 +24,13 @@ async function validateCSV(filePath) {
         const productName = row["Product Name"];
         const imageUrls = row["Input Image Urls"];
 
+        //if productname or imageUrl is missing from the file
         if (!productName || !imageUrls) {
           console.log(`Row ${rowNumber}: Missing values`);
-          return;
+          throw new Error("Invalid CSV File")
         }
 
+        //split with comma(,) and trim the urls, and create the array
         const urls = imageUrls.split(",").map((url) => url.trim());
         for (const url of urls) {
           if (!url.startsWith("https")) {
@@ -65,6 +68,7 @@ async function validateCSV(filePath) {
     });
 
     stream.on("end", () => {
+      //resolve all the promises at once and follow the async nature
       Promise.all(promises)
         .then(() => {
           console.log("CSV Validation Completed!!");
@@ -149,7 +153,7 @@ const generateCSV = asyncHandler(async (req, res) => {
   const records = products.map((product, index) => ({
     sNo: index + 1,
     productName: product.productName,
-    inputImgUrls: product.inputImgUrls.join(", "),
+    inputImgUrls: product.inputImgUrls.join(", "), // join different element using comma (,)
     outputImgUrls: product.processedImgUrls.join(", "),
   }));
 
@@ -157,7 +161,7 @@ const generateCSV = asyncHandler(async (req, res) => {
 
   // Write the data to the CSV file
   try {
-    await csvWriter.writeRecords(records);
+    await csvWriter.writeRecords(records); //write all the records
     console.log("CSV file created successfully!");
   } catch (error) {
     console.error("Error creating CSV file:", error);
