@@ -8,6 +8,8 @@ const axios = require("axios").default;
 const csv = require("csv-parser");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
+
+//validate the CSV file
 async function validateCSV(filePath) {
   const results = [];
   const promises = [];
@@ -78,6 +80,7 @@ async function validateCSV(filePath) {
   });
 }
 
+//fetch the csv file path and validate it
 const uploadCSV = asyncHandler(async (req, res) => {
   //fetch the csv file and store it using multer
   const csvFilePath = req.files.csvfile[0].path;
@@ -109,6 +112,7 @@ const uploadCSV = asyncHandler(async (req, res) => {
   );
 });
 
+//fetch the file with the fileId and return the status
 const trackStatus = asyncHandler(async (req, res) => {
   //find the requested Id in the db ? return the response : return the error
   const { id } = req.params;
@@ -124,6 +128,8 @@ const trackStatus = asyncHandler(async (req, res) => {
   }
 });
 
+
+//function used for generating the csv file by given data.
 const generateCSV = asyncHandler(async (req, res) => {
   const { products } = req.body;
   const filePath = "public/output/output.csv";

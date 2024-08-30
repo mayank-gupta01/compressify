@@ -45,6 +45,8 @@ const triggerWebhook = async (webhookUrl, payload) => {
   }
 };
 
+
+//pop the task from the redis queue, and process them one by one.
 const processTask = async () => {
   try {
     const value = await redis.lpop("task");
@@ -62,7 +64,7 @@ const processTask = async () => {
           product
         );
 
-        console.log(processImgUrls);
+        // console.log(processImgUrls);
         products[i].processedImgUrls = processImgUrls;
       }
 
@@ -76,6 +78,7 @@ const processTask = async () => {
         products,
       };
 
+      //function for triggering the webhook for generate the output csv file.
       await triggerWebhook(webhookUrl, payload);
     }
   } catch (error) {
