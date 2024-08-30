@@ -2,21 +2,20 @@ const mongoose = require("mongoose");
 
 const productSchema = mongoose.Schema(
   {
-    name: {
+    productName: {
       type: String,
       lowercase: true,
       trim: true,
+    },
+    fileId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "File",
     },
     inputImgUrls: {
       type: [String],
     },
     processedImgUrl: {
       type: [String],
-    },
-    status: {
-      type: String,
-      enum: ["PROCESSING", "SUCCESS"],
-      default: "PROCESSING",
     },
   },
   {

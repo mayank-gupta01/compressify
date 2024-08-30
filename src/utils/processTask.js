@@ -2,61 +2,53 @@ const redis = require("./client");
 const fs = require("fs");
 const axios = require("axios");
 const csv = require("csv-parser");
+const Product = require("../models/product.model");
 
-async function validateCSV(filePath) {
+async function validateCSV(fileId, filePath) {
   const results = [];
-  const rowPromises = [];
 
-  return new Promise((resolve, reject) => {
-    fs.createReadStream(filePath)
-      .pipe(csv())
-      .on("data", async (row) => {
-        const rowPromise = (async () => {
-          const rowNumber = results.length + 1;
-          const productName = row["Product Name"];
-          const imageUrls = row["Input Image Urls"];
+  fs.createReadStream(filePath)
+    .pipe(csv())
+    .on("data", async (row) => {
+      const rowNumber = results.length + 1;
+      const productName = row["Product Name"];
+      const imageUrls = row["Input Image Urls"];
 
-          if (!productName || !imageUrls) {
-            console.log(`Row ${rowNumber}: Missing values`);
-            return;
-          }
+      if (!productName || !imageUrls) {
+        console.log(`Row ${rowNumber}: Missing values`);
+        return;
+      }
 
-          const urls = imageUrls.split(",").map((url) => url.trim());
-          for (const url of urls) {
-            if (!url.startsWith("https")) {
-              console.log(`Row ${rowNumber}: Invalid URL - ${url}`);
-            } else {
-              try {
-                const response = await axios.head(url);
-                if (response.status !== 200) {
-                  console.log(`Row ${rowNumber}: URL not accessible - ${url}`);
-                }
-              } catch (error) {
-                console.log(
-                  `Row ${rowNumber}: Failed to reach the URL - ${url}`
-                );
-              }
+      const urls = imageUrls.split(",").map((url) => url.trim());
+      for (const url of urls) {
+        if (!url.startsWith("https")) {
+          console.log(`Row ${rowNumber}: Invalid URL - ${url}`);
+        } else {
+          try {
+            const response = await axios.head(url);
+            if (response.status !== 200) {
+              console.log(`Row ${rowNumber}: URL not accessible - ${url}`);
             }
+          } catch (error) {
+            console.log(`Row ${rowNumber}: Failed to reach the URL - ${url}`);
           }
+        }
+      }
 
-          const tempRow = {
-            productName: productName,
-            inputUrls: urls,
-          };
-          results.push(tempRow);
-        })();
+      const product = {
+        productName: productName,
+        fileId: fileId,
+        inputImgUrls: urls,
+      };
+      console.log(product);
 
-        rowPromises.push(rowPromise);
-      })
+      const createdProduct = await Product.create(product);
+      console.log(createdProduct);
+    })
 
-      .on("end", async () => {
-        await Promise.all(rowPromises);
-        resolve(results);
-      })
-      .on("error", (error) => {
-        reject(error);
-      });
-  });
+    .on("end", () => {
+      console.log("CSV Validation Completed!!");
+    });
 }
 
 const processTask = async () => {
@@ -65,11 +57,10 @@ const processTask = async () => {
 
     if (value) {
       const valueObj = JSON.parse(value);
-      const id = valueObj.id;
+      const fileId = valueObj.id;
       const filePath = valueObj.csvFilePath;
 
-      const results = await validateCSV(filePath);
-      console.log(results);
+      await validateCSV(fileId, filePath);
     }
   } catch (error) {
     console.error("error:", error);
