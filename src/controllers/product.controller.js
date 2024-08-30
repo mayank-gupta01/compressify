@@ -34,7 +34,6 @@ async function validateCSV(filePath) {
             try {
               const response = await axios.get(url);
               const contentType = response.headers["content-type"];
-              console.log(contentType);
               if (
                 response.status !== 200 ||
                 !contentType ||
@@ -96,6 +95,9 @@ const uploadCSV = asyncHandler(async (req, res) => {
   const createFile = await File.create({
     status: "PROCESSING",
   });
+
+  //unlink the csv file
+  fs.unlinkSync(csvFilePath);
 
   //add the fetched file and product->id in redis queue
   const id = createFile._id;
